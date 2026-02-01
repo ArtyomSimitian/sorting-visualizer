@@ -412,7 +412,7 @@ export default function App() {
                     <input
                         type="range"
                         min={5}
-                        max={450}
+                        max={150}
                         value={n}
                         onChange={(e) => {
                             const nextN = Number(e.target.value);
