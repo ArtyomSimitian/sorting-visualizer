@@ -1,0 +1,76 @@
+.app {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 16px;
+  font-family: Courier New, Courier, monospace;
+}
+
+.controls {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.buttons {
+  margin: auto;
+  gap: 12px;
+  display: flex;
+  border: 5px solid #ddd;
+  text-align: center;
+  align-content: center;
+}
+
+.bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 320px;
+  border: 5px solid #ddd;
+  padding: 8px;
+  user-select: none;
+}
+
+.bar {
+  flex: 1;
+  background: #888;
+  border-radius: 2px 2px 0 0;
+}
+
+.bar--active {
+  background: #f59e0b;
+}
+
+.bar--sorted {
+  background: #22c55e;
+
+}
+
+.explain {
+  margin-top: 16px;
+  border-top: 1px solid #eee;
+  padding-top: 12px;
+}
+
+.image-wrap {
+  max-width: 1000px;
+  margin: 16px auto 0;
+  padding: 8px;
+  background: #242424;
+  border-radius: 10px;
+}
+
+.cheatsheet-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 8px;
+}
+
+.source-information {
+  display: flex;
+  justify-content: center;
+  font-size: x-small;
+  margin: 8px auto 0;
+  text-align: center;
+  width: 100%;
+}
