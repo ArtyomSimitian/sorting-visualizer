@@ -223,7 +223,8 @@ export default function App() {
                 a1.pause();
                 a1.currentTime = 0;
             }
-        } catch {}
+        } catch {//catch
+            }
 
         try {
             if (a2) {
@@ -232,7 +233,8 @@ export default function App() {
                 a2.pause();
                 a2.currentTime = 0;
             }
-        } catch {}
+        } catch {//catch
+             }
     }
 
     function playFromPool(pool: HTMLAudioElement[], idxRef: React.MutableRefObject<number>) {
