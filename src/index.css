@@ -85,4 +85,29 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+/* iOS/Chrome/Firefox: tint sliders + checkboxes */
+input[type="range"],
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: darkorange;
+}
+
+/* iOS: prevent the dark-blue tap highlight */
+a, button, input, select {
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+
+/* iOS sometimes gives buttons "link blue" text unless you force it */
+button {
+  color: inherit;
+}
+
+select {
+  font: inherit;
+  color: darkorange;
+  background: #1a1a1a;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 0.4em 0.8em;
+}
 
