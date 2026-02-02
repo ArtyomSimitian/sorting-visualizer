@@ -194,6 +194,37 @@ function SortingVisualizer() {
     const swapIdxRef = useRef(0);
     const sortedIdxRef = useRef(0);
 
+    const lastSwapSoundRef = useRef(0);
+    const lastSortedSoundRef = useRef(0);
+
+
+    // "Mobile" heuristic: touch device / coarse pointer (covers iPhone, most phones)
+    const isMobileRef = useRef(false);
+
+    useEffect(() => {
+        const mql = window.matchMedia("(pointer: coarse)");
+
+        const update = () => {
+            isMobileRef.current = mql.matches || window.innerWidth <= 768;
+        };
+
+        update();
+
+        // Safari fallback support
+        if ("addEventListener" in mql) mql.addEventListener("change", update);
+        else (mql as any).addListener(update);
+
+        window.addEventListener("resize", update);
+
+        return () => {
+            if ("removeEventListener" in mql) mql.removeEventListener("change", update);
+            else (mql as any).removeListener(update);
+
+            window.removeEventListener("resize", update);
+        };
+    }, []);
+
+
     useEffect(() => {
         swapPoolRef.current = Array.from({ length: 6 }, () => {
             const a = new Audio(swapSfxUrl);
@@ -257,6 +288,43 @@ function SortingVisualizer() {
         playFromPool(sortedPoolRef.current, sortedIdxRef);
     }
 
+    function playSwapSoundThrottled(speedMs: number) {
+        if (!soundOnRef.current) return;
+
+        // Desktop: do NOT throttle
+        if (!isMobileRef.current) {
+            playSwapSound();
+            return;
+        }
+
+        const now = performance.now();
+
+        // Mobile: throttle based on speed
+        const minGap = speedMs <= 5 ? 80 : speedMs <= 15 ? 55 : 40; // ms
+        if (now - lastSwapSoundRef.current < minGap) return;
+
+        lastSwapSoundRef.current = now;
+        playSwapSound();
+    }
+
+    function playSortedSoundThrottled() {
+        if (!soundOnRef.current) return;
+
+        // Desktop: do NOT throttle
+        if (!isMobileRef.current) {
+            playSortedSound();
+            return;
+        }
+
+        const now = performance.now();
+        const minGap = 140; // ms
+        if (now - lastSortedSoundRef.current < minGap) return;
+
+        lastSortedSoundRef.current = now;
+        playSortedSound();
+    }
+
+
     // --- Sorting state ---
     const [algo, setAlgo] = useState<Algo>("bubble");
     const [n, setN] = useState(40);
@@ -283,6 +351,9 @@ function SortingVisualizer() {
         const next = randomArray(newN);
         valuesRef.current = next;
         setValues(next);
+
+        lastSwapSoundRef.current = 0;
+        lastSortedSoundRef.current = 0;
     }
 
     function applyStep(step: Step) {
@@ -292,7 +363,7 @@ function SortingVisualizer() {
         }
 
         if (step.type === "swap") {
-            playSwapSound();
+            playSwapSoundThrottled(speedMs);
             setValues((prev) => {
                 const next = prev.slice();
                 [next[step.i], next[step.j]] = [next[step.j], next[step.i]];
@@ -302,7 +373,7 @@ function SortingVisualizer() {
         }
 
         if (step.type === "overwrite") {
-            playSwapSound();
+            playSwapSoundThrottled(speedMs);
             setValues((prev) => {
                 const next = prev.slice();
                 next[step.i] = step.value;
@@ -314,7 +385,7 @@ function SortingVisualizer() {
         if (step.type === "markSorted") {
             setSorted((prev) => {
                 if (prev.has(step.index)) return prev;
-                playSortedSound();
+                playSortedSoundThrottled();
                 const next = new Set(prev);
                 next.add(step.index);
                 return next;
@@ -336,6 +407,9 @@ function SortingVisualizer() {
             setSorted(new Set());
             setActive(null);
             iterRef.current = ALGORITHMS[algo].gen(valuesRef.current);
+
+            lastSwapSoundRef.current = 0;
+            lastSortedSoundRef.current = 0;
         }
 
         playingRef.current = true;
@@ -362,6 +436,9 @@ function SortingVisualizer() {
             setSorted(new Set());
             setActive(null);
             iterRef.current = ALGORITHMS[algo].gen(valuesRef.current);
+
+            lastSwapSoundRef.current = 0;
+            lastSortedSoundRef.current = 0;
         }
 
         const res = iterRef.current.next();
@@ -382,8 +459,11 @@ function SortingVisualizer() {
             <div className="controls">
                 <label>
                     Sound:{" "}
-
-                    <input type="checkbox" checked={soundOn} onChange={(e) => setSoundOn(e.target.checked)} />
+                    <input
+                        type="checkbox"
+                        checked={soundOn}
+                        onChange={(e) => setSoundOn(e.target.checked)}
+                    />
                 </label>
 
                 <label>
@@ -423,7 +503,13 @@ function SortingVisualizer() {
 
                 <label>
                     Speed (ms): {speedMs}
-                    <input type="range" min={0} max={200} value={speedMs} onChange={(e) => setSpeedMs(Number(e.target.value))} />
+                    <input
+                        type="range"
+                        min={0}
+                        max={200}
+                        value={speedMs}
+                        onChange={(e) => setSpeedMs(Number(e.target.value))}
+                    />
                 </label>
 
                 <div className="buttons">
@@ -441,7 +527,9 @@ function SortingVisualizer() {
                     return (
                         <div
                             key={idx}
-                            className={`bar ${isActive ? "bar--active" : ""} ${isSorted ? "bar--sorted" : ""}`}
+                            className={`bar ${isActive ? "bar--active" : ""} ${
+                                isSorted ? "bar--sorted" : ""
+                            }`}
                             style={{ height: `${v}%` }}
                             title={`${v}`}
                         />
@@ -450,19 +538,24 @@ function SortingVisualizer() {
             </div>
 
             <div className="explain">
-                <h2 className="blankComplexity">
-                    {info.label} Complexity
-                </h2>
+                <h2 className="blankComplexity">{info.label} Complexity</h2>
                 <p>{info.time}</p>
                 <p>{info.space}</p>
             </div>
 
             <div className="image-wrap">
-                <img src={bigOCheatSheet} alt="Big-O cheat sheet" className="cheatsheet-img" />
+                <img
+                    src={bigOCheatSheet}
+                    alt="Big-O cheat sheet"
+                    className="cheatsheet-img"
+                />
             </div>
 
             <div className="source-information">
-                <p>Image Source: Big-O Cheatsheet by Eric Rowell (bigocheatsheet.com), via Wikimedia Commons.</p>
+                <p>
+                    Image Source: Big-O Cheatsheet by Eric Rowell (bigocheatsheet.com), via
+                    Wikimedia Commons.
+                </p>
             </div>
             <div className="copyright">
                 <p>Copyright &#169; 2026 Artyom Simitian. All Rights Reserved</p>
@@ -480,7 +573,6 @@ export default function App() {
                 <i className="nav__link">|</i>
                 <Link className="nav__link" to="/about">About</Link>
             </nav>
-
 
             <Routes>
                 <Route path="/" element={<SortingVisualizer />} />
