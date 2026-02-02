@@ -1,5 +1,5 @@
 // src/App.tsx
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { MutableRefObject } from "react";
 import "./App.css";
 
@@ -10,51 +10,18 @@ import sortedSfxUrl from "./assets/sorted.wav";
 import { Link, Route, Routes } from "react-router-dom";
 import About from "./pages/About";
 
-type StepBubble =
+/* ----------------------------- Types ----------------------------- */
+
+type Step =
     | { type: "compare"; i: number; j: number }
     | { type: "swap"; i: number; j: number }
-    | { type: "markSorted"; index: number };
-
-type StepMerge =
-    | { type: "compare"; i: number; j: number }
     | { type: "overwrite"; i: number; value: number }
     | { type: "markSorted"; index: number };
-
-type Step = StepBubble | StepMerge;
 
 type Algo = "bubble" | "merge" | "quick";
 type SortGen = (arr: number[]) => Generator<Step, void, void>;
 
-/**
- * Collapses long runs of compares into a single compare (the latest one)
- * before the next "real" action (swap/overwrite/markSorted).
- * This massively reduces step count without changing correctness.
- */
-function* coalesceCompareSteps(src: Generator<Step, void, void>): Generator<Step, void, void> {
-    let pendingCompare: Step | null = null;
-
-    while (true) {
-        const r = src.next();
-        if (r.done) {
-            if (pendingCompare) yield pendingCompare;
-            return;
-        }
-
-        const step = r.value;
-
-        if (step.type === "compare") {
-            pendingCompare = step;
-            continue;
-        }
-
-        if (pendingCompare) {
-            yield pendingCompare;
-            pendingCompare = null;
-        }
-
-        yield step;
-    }
-}
+/* --------------------------- Algorithms -------------------------- */
 
 function* bubbleSortSteps(arr: number[]): Generator<Step, void, void> {
     const a = arr.slice();
@@ -74,11 +41,9 @@ function* bubbleSortSteps(arr: number[]): Generator<Step, void, void> {
 
         yield { type: "markSorted", index: end };
 
-        // Early exit: remaining prefix already sorted
+        // Early exit if already sorted
         if (!swapped) {
-            for (let k = end - 1; k >= 0; k--) {
-                yield { type: "markSorted", index: k };
-            }
+            for (let k = end - 1; k >= 0; k--) yield { type: "markSorted", index: k };
             return;
         }
     }
@@ -130,9 +95,7 @@ function* mergeSortSteps(arr: number[]): Generator<Step, void, void> {
 
     yield* sort(0, a.length);
 
-    for (let idx = 0; idx < a.length; idx++) {
-        yield { type: "markSorted", index: idx };
-    }
+    for (let idx = 0; idx < a.length; idx++) yield { type: "markSorted", index: idx };
 }
 
 function* quickSortSteps(arr: number[]): Generator<Step, void, void> {
@@ -173,7 +136,6 @@ function* quickSortSteps(arr: number[]): Generator<Step, void, void> {
 
         for (let j = lo; j < hi; j++) {
             yield { type: "compare", i: j, j: hi };
-
             if (a[j] < pivot) {
                 if (i !== j) {
                     [a[i], a[j]] = [a[j], a[i]];
@@ -195,6 +157,35 @@ function* quickSortSteps(arr: number[]): Generator<Step, void, void> {
 
     for (let idx = 0; idx < a.length; idx++) {
         if (!sorted[idx]) yield { type: "markSorted", index: idx };
+    }
+}
+
+/**
+ * Optimization: collapse runs of compares to the latest compare
+ * before a real action step. Huge step-count reduction.
+ */
+function* coalesceCompareSteps(src: Generator<Step, void, void>): Generator<Step, void, void> {
+    let pending: Step | null = null;
+
+    while (true) {
+        const r = src.next();
+        if (r.done) {
+            if (pending) yield pending;
+            return;
+        }
+
+        const step = r.value;
+        if (step.type === "compare") {
+            pending = step;
+            continue;
+        }
+
+        if (pending) {
+            yield pending;
+            pending = null;
+        }
+
+        yield step;
     }
 }
 
@@ -223,13 +214,9 @@ function randomArray(n: number) {
     return Array.from({ length: n }, () => Math.floor(5 + Math.random() * 95));
 }
 
-type ActivePair = { i: number; j: number } | null;
+/* --------------------------- Audio Hook -------------------------- */
 
-/* visualizer moved here */
-function SortingVisualizer() {
-    // --- Sound ---
-    const [soundOn, setSoundOn] = useState(true);
-
+function useAudioPools(soundOn: boolean) {
     const soundOnRef = useRef(soundOn);
     useEffect(() => {
         soundOnRef.current = soundOn;
@@ -243,27 +230,21 @@ function SortingVisualizer() {
     const lastSwapSoundRef = useRef(0);
     const lastSortedSoundRef = useRef(0);
 
-    // "Mobile" heuristic: touch device / coarse pointer
     const isMobileRef = useRef(false);
-
     useEffect(() => {
         const mql = window.matchMedia("(pointer: coarse)");
-
         const update = () => {
             isMobileRef.current = mql.matches || window.innerWidth <= 768;
         };
-
         update();
 
         if ("addEventListener" in mql) mql.addEventListener("change", update);
         else (mql as any).addListener(update);
 
         window.addEventListener("resize", update);
-
         return () => {
             if ("removeEventListener" in mql) mql.removeEventListener("change", update);
             else (mql as any).removeListener(update);
-
             window.removeEventListener("resize", update);
         };
     }, []);
@@ -292,7 +273,6 @@ function SortingVisualizer() {
     async function primeAudio() {
         const a1 = swapPoolRef.current[0];
         const a2 = sortedPoolRef.current[0];
-
         try {
             if (a1) {
                 a1.currentTime = 0;
@@ -301,9 +281,8 @@ function SortingVisualizer() {
                 a1.currentTime = 0;
             }
         } catch {
-            /* empty */
+            /* ignore */
         }
-
         try {
             if (a2) {
                 a2.currentTime = 0;
@@ -312,7 +291,7 @@ function SortingVisualizer() {
                 a2.currentTime = 0;
             }
         } catch {
-            /* empty */
+            /* ignore */
         }
     }
 
@@ -327,15 +306,6 @@ function SortingVisualizer() {
         void a.play().catch(() => {});
     }
 
-    function playSwapSound() {
-        playFromPool(swapPoolRef.current, swapIdxRef);
-    }
-
-    function playSortedSound() {
-        playFromPool(sortedPoolRef.current, sortedIdxRef);
-    }
-
-    // --- Audio queue (mobile + speed=0 throttle) ---
     const audioRafRef = useRef<number | null>(null);
     const pendingSwapRef = useRef(false);
     const pendingSortedRef = useRef(false);
@@ -353,7 +323,7 @@ function SortingVisualizer() {
 
             if (now - lastSwapSoundRef.current >= minGap) {
                 lastSwapSoundRef.current = now;
-                playSwapSound();
+                playFromPool(swapPoolRef.current, swapIdxRef);
             }
         }
 
@@ -363,7 +333,7 @@ function SortingVisualizer() {
             const minGap = 140;
             if (now - lastSortedSoundRef.current >= minGap) {
                 lastSortedSoundRef.current = now;
-                playSortedSound();
+                playFromPool(sortedPoolRef.current, sortedIdxRef);
             }
         }
     }
@@ -375,14 +345,11 @@ function SortingVisualizer() {
 
     function queueSwapSound(speedMs: number) {
         if (!soundOnRef.current) return;
-
         const forceThrottle = speedMs === 0;
-
         if (!isMobileRef.current && !forceThrottle) {
-            playSwapSound();
+            playFromPool(swapPoolRef.current, swapIdxRef);
             return;
         }
-
         pendingSwapSpeedRef.current = speedMs;
         pendingSwapRef.current = true;
         scheduleAudioFlush();
@@ -390,16 +357,18 @@ function SortingVisualizer() {
 
     function queueSortedSound(speedMs: number) {
         if (!soundOnRef.current) return;
-
         const forceThrottle = speedMs === 0;
-
         if (!isMobileRef.current && !forceThrottle) {
-            playSortedSound();
+            playFromPool(sortedPoolRef.current, sortedIdxRef);
             return;
         }
-
         pendingSortedRef.current = true;
         scheduleAudioFlush();
+    }
+
+    function resetSoundTimers() {
+        lastSwapSoundRef.current = 0;
+        lastSortedSoundRef.current = 0;
     }
 
     useEffect(() => {
@@ -408,50 +377,52 @@ function SortingVisualizer() {
         };
     }, []);
 
-    // --- Controls (React state) ---
+    return { primeAudio, queueSwapSound, queueSortedSound, resetSoundTimers };
+}
+
+/* ------------------------- Visualizer Page ------------------------ */
+
+type ActivePair = { i: number; j: number } | null;
+
+function SortingVisualizer() {
+    // UI State
     const [algo, setAlgo] = useState<Algo>("bubble");
     const [n, setN] = useState(40);
     const [speedMs, setSpeedMs] = useState(20);
+    const [soundOn, setSoundOn] = useState(true);
 
-    // Force remount bars on reset/size change
+    // Force bar remount on reset/size change for clean refs/classes
     const [barsVersion, setBarsVersion] = useState(0);
 
+    // Audio
+    const { primeAudio, queueSwapSound, queueSortedSound, resetSoundTimers } = useAudioPools(soundOn);
+
+    // Hot state in refs
     const algoRef = useRef(algo);
-    const speedMsRef = useRef(speedMs);
+    const speedRef = useRef(speedMs);
+    useEffect(() => void (algoRef.current = algo), [algo]);
+    useEffect(() => void (speedRef.current = speedMs), [speedMs]);
 
-    useEffect(() => {
-        algoRef.current = algo;
-    }, [algo]);
-
-    useEffect(() => {
-        speedMsRef.current = speedMs;
-    }, [speedMs]);
-
-    // --- Bars model stored in refs (no React updates per step) ---
     const valuesRef = useRef<number[]>(randomArray(40));
-    const sortedFlagsRef = useRef<boolean[]>(new Array(40).fill(false));
-    const activePairRef = useRef<ActivePair>(null);
+    const sortedRef = useRef<boolean[]>(new Array(40).fill(false));
 
-    // NEW: active is latched per frame so it always paints at high speed
+    const activeRef = useRef<ActivePair>(null);
     const pendingActiveRef = useRef<ActivePair>(null);
 
-    // DOM refs for bars
-    const barElsRef = useRef<(HTMLDivElement | null)[]>([]);
+    // DOM refs
+    const barElsRef = useRef<(HTMLDivElement | null)[]>(new Array(40).fill(null));
 
-    // --- Runner state ---
+    // Runner refs
     const playingRef = useRef(false);
     const iterRef = useRef<Generator<Step, void, void> | null>(null);
 
     const rafIdRef = useRef<number | null>(null);
-    const lastTimeRef = useRef<number>(0);
-    const accRef = useRef<number>(0);
+    const lastTimeRef = useRef(0);
+    const accRef = useRef(0);
 
-    function cancelRaf() {
-        if (rafIdRef.current != null) {
-            cancelAnimationFrame(rafIdRef.current);
-            rafIdRef.current = null;
-        }
-    }
+    const info = useMemo(() => ALGORITHMS[algo], [algo]);
+
+    /* ---------- DOM helpers ---------- */
 
     function addClass(idx: number, cls: string) {
         const el = barElsRef.current[idx];
@@ -471,7 +442,7 @@ function SortingVisualizer() {
     }
 
     function setActivePair(next: ActivePair) {
-        const prev = activePairRef.current;
+        const prev = activeRef.current;
         if (prev) {
             removeClass(prev.i, "bar--active");
             removeClass(prev.j, "bar--active");
@@ -482,98 +453,84 @@ function SortingVisualizer() {
             addClass(next.j, "bar--active");
         }
 
-        activePairRef.current = next;
+        activeRef.current = next;
     }
 
-    function clearAllMarks() {
-        const len = valuesRef.current.length;
-        for (let i = 0; i < len; i++) {
+    function clearMarks() {
+        for (let i = 0; i < valuesRef.current.length; i++) {
             removeClass(i, "bar--active");
             removeClass(i, "bar--sorted");
         }
-        activePairRef.current = null;
+        activeRef.current = null;
         pendingActiveRef.current = null;
-        sortedFlagsRef.current.fill(false);
+        sortedRef.current.fill(false);
     }
 
-    function stopRun() {
+    /* ---------- Run control ---------- */
+
+    function cancelRaf() {
+        if (rafIdRef.current != null) {
+            cancelAnimationFrame(rafIdRef.current);
+            rafIdRef.current = null;
+        }
+    }
+
+    function pause() {
         playingRef.current = false;
         cancelRaf();
-    }
-
-    function resetArray(newN = n) {
-        stopRun();
-        iterRef.current = null;
-
-        valuesRef.current = randomArray(newN);
-        sortedFlagsRef.current = new Array(newN).fill(false);
-        activePairRef.current = null;
-        pendingActiveRef.current = null;
-
-        lastSwapSoundRef.current = 0;
-        lastSortedSoundRef.current = 0;
-
-        if (newN !== n) setN(newN);
-        setBarsVersion((v) => v + 1);
     }
 
     function initIteratorIfNeeded() {
         if (iterRef.current) return;
 
-        clearAllMarks();
+        clearMarks();
 
-        // NEW: wrap generator to coalesce compares
         const raw = ALGORITHMS[algoRef.current].gen(valuesRef.current);
         iterRef.current = coalesceCompareSteps(raw);
 
-        lastSwapSoundRef.current = 0;
-        lastSortedSoundRef.current = 0;
+        resetSoundTimers();
     }
 
     function applyStep(step: Step) {
-        const speed = speedMsRef.current;
+        const speed = speedRef.current;
 
-        if (step.type === "compare") {
-            // NEW: latch active (paint once per frame)
-            pendingActiveRef.current = { i: step.i, j: step.j };
-            return;
-        }
+        switch (step.type) {
+            case "compare":
+                // latch and paint once per frame (so it shows even < 10ms)
+                pendingActiveRef.current = { i: step.i, j: step.j };
+                return;
 
-        if (step.type === "swap") {
-            pendingActiveRef.current = { i: step.i, j: step.j };
-            queueSwapSound(speed);
+            case "swap": {
+                pendingActiveRef.current = { i: step.i, j: step.j };
+                queueSwapSound(speed);
 
-            const a = valuesRef.current;
-            const i = step.i;
-            const j = step.j;
+                const a = valuesRef.current;
+                const i = step.i;
+                const j = step.j;
 
-            const tmp = a[i];
-            a[i] = a[j];
-            a[j] = tmp;
+                const tmp = a[i];
+                a[i] = a[j];
+                a[j] = tmp;
 
-            setBarHeight(i, a[i]);
-            setBarHeight(j, a[j]);
-            return;
-        }
+                setBarHeight(i, a[i]);
+                setBarHeight(j, a[j]);
+                return;
+            }
 
-        if (step.type === "overwrite") {
-            // highlight the overwritten index (single-bar highlight)
-            pendingActiveRef.current = { i: step.i, j: step.i };
-            queueSwapSound(speed);
+            case "overwrite":
+                pendingActiveRef.current = { i: step.i, j: step.i };
+                queueSwapSound(speed);
 
-            valuesRef.current[step.i] = step.value;
-            setBarHeight(step.i, step.value);
-            return;
-        }
+                valuesRef.current[step.i] = step.value;
+                setBarHeight(step.i, step.value);
+                return;
 
-        if (step.type === "markSorted") {
-            const flags = sortedFlagsRef.current;
-            if (flags[step.index]) return;
-
-            flags[step.index] = true;
-            addClass(step.index, "bar--sorted");
-            queueSortedSound(speed);
-            return;
+            case "markSorted":
+                if (sortedRef.current[step.index]) return;
+                sortedRef.current[step.index] = true;
+                addClass(step.index, "bar--sorted");
+                queueSortedSound(speed);
+                return;
         }
     }
 
@@ -582,7 +539,6 @@ function SortingVisualizer() {
         if (!it) return true;
 
         const res = it.next();
-
         if (res.done) {
             iterRef.current = null;
             pendingActiveRef.current = null;
@@ -597,17 +553,12 @@ function SortingVisualizer() {
     function tick(now: number) {
         if (!playingRef.current) return;
 
-        const speed = speedMsRef.current;
+        const speed = speedRef.current;
         const dt = now - lastTimeRef.current;
         lastTimeRef.current = now;
 
-        // Bounds: never lock up main thread
+        // never lock the UI
         const MAX_STEPS_PER_FRAME = speed === 0 ? 900 : 240;
-
-        if (!iterRef.current) {
-            playingRef.current = false;
-            return;
-        }
 
         let steps = 0;
 
@@ -619,7 +570,6 @@ function SortingVisualizer() {
             }
         } else {
             accRef.current += dt;
-
             while (playingRef.current && iterRef.current && accRef.current >= speed && steps < MAX_STEPS_PER_FRAME) {
                 accRef.current -= speed;
                 const done = advanceOneStep();
@@ -628,7 +578,7 @@ function SortingVisualizer() {
             }
         }
 
-        // NEW: apply latest active highlight ONCE per frame so it paints even <10ms
+        // paint active ONCE per frame (after swaps/sorted updates)
         if (pendingActiveRef.current) {
             setActivePair(pendingActiveRef.current);
             pendingActiveRef.current = null;
@@ -653,31 +603,41 @@ function SortingVisualizer() {
         rafIdRef.current = requestAnimationFrame(tick);
     }
 
-    function pause() {
-        stopRun();
-    }
-
     function stepOnce() {
         void primeAudio();
         initIteratorIfNeeded();
 
         advanceOneStep();
 
-        // ensure a step paints active immediately
+        // ensure a single step paints immediately
         if (pendingActiveRef.current) {
             setActivePair(pendingActiveRef.current);
             pendingActiveRef.current = null;
         }
     }
 
+    function resetArray(newN = n) {
+        pause();
+        iterRef.current = null;
+
+        // reset data + DOM refs
+        valuesRef.current = randomArray(newN);
+        sortedRef.current = new Array(newN).fill(false);
+        activeRef.current = null;
+        pendingActiveRef.current = null;
+        barElsRef.current = new Array(newN).fill(null);
+
+        resetSoundTimers();
+
+        if (newN !== n) setN(newN);
+        setBarsVersion((v) => v + 1);
+    }
+
+    // cleanup
     useEffect(() => {
-        return () => {
-            stopRun();
-        };
+        return () => pause();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-
-    const info = ALGORITHMS[algo];
 
     return (
         <>
@@ -696,9 +656,7 @@ function SortingVisualizer() {
                         onChange={(e) => {
                             pause();
                             iterRef.current = null;
-                            pendingActiveRef.current = null;
-                            setActivePair(null);
-                            clearAllMarks();
+                            clearMarks();
                             setAlgo(e.target.value as Algo);
                         }}
                     >
@@ -717,10 +675,7 @@ function SortingVisualizer() {
                         min={5}
                         max={150}
                         value={n}
-                        onChange={(e) => {
-                            const nextN = Number(e.target.value);
-                            resetArray(nextN);
-                        }}
+                        onChange={(e) => resetArray(Number(e.target.value))}
                     />
                 </label>
 
@@ -737,21 +692,16 @@ function SortingVisualizer() {
                 </div>
             </div>
 
-            {/* Remount container on reset/size change */}
             <div key={barsVersion} className="bars">
                 {Array.from({ length: n }).map((_, idx) => {
                     const v = valuesRef.current[idx] ?? 0;
-                    const active = activePairRef.current;
-                    const isActive = !!active && (idx === active.i || idx === active.j);
-                    const isSorted = !!sortedFlagsRef.current[idx];
-
                     return (
                         <div
                             key={idx}
                             ref={(el) => {
                                 barElsRef.current[idx] = el;
                             }}
-                            className={`bar ${isActive ? "bar--active" : ""} ${isSorted ? "bar--sorted" : ""}`}
+                            className="bar"
                             style={{ height: `${v}%` }}
                             title={`${v}`}
                         />
@@ -780,7 +730,8 @@ function SortingVisualizer() {
     );
 }
 
-/* Router shell */
+/* ---------------------------- Router ---------------------------- */
+
 export default function App() {
     return (
         <div className="app">
