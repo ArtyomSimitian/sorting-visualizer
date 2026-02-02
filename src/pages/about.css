@@ -1,0 +1,48 @@
+.about {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 24px;
+}
+
+.drop__title{
+    color: darkorange;
+    padding: 16px;
+    font-size: x-large;
+}
+
+.drop{
+    font-size: larger;
+}
+
+.aboutText {
+    flex: 1;
+    min-width: 0; /* prevents overflow issues */
+}
+
+.aboutImageWrap {
+    flex: 0 0 auto;
+}
+
+.aboutImage {
+    width: 480px;   /* change size */
+    height: auto;
+    border-radius: 16px;
+    border: 5px solid #ffffff;
+    display: block;
+    margin: 16px;
+    background-color: white;
+}
+
+/* Mobile: stack image under text */
+@media (max-width: 768px) {
+    .about {
+        flex-direction: column;
+    }
+
+    .aboutImage {
+        width: 100%;
+        max-width: 420px;
+    }
+}

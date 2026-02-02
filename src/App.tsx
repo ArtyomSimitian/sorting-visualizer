@@ -1,9 +1,14 @@
 // src/App.tsx
 import { useEffect, useRef, useState } from "react";
+import type { MutableRefObject } from "react";
 import "./App.css";
+
 import bigOCheatSheet from "./assets/Big-O_Cheatsheet.png";
 import swapSfxUrl from "./assets/swap.wav";
 import sortedSfxUrl from "./assets/sorted.wav";
+
+import { Link, Route, Routes } from "react-router-dom";
+import About from "./pages/About";
 
 type StepBubble =
     | { type: "compare"; i: number; j: number }
@@ -174,17 +179,16 @@ function randomArray(n: number) {
     return Array.from({ length: n }, () => Math.floor(5 + Math.random() * 95));
 }
 
-export default function App() {
+/* visualizer moved here */
+function SortingVisualizer() {
     // --- Sound ---
     const [soundOn, setSoundOn] = useState(true);
 
-    // keep latest toggle value during async play loop
     const soundOnRef = useRef(soundOn);
     useEffect(() => {
         soundOnRef.current = soundOn;
     }, [soundOn]);
 
-    // separate pools so swap and sorted can have different files
     const swapPoolRef = useRef<HTMLAudioElement[]>([]);
     const sortedPoolRef = useRef<HTMLAudioElement[]>([]);
     const swapIdxRef = useRef(0);
@@ -200,7 +204,7 @@ export default function App() {
 
         sortedPoolRef.current = Array.from({ length: 4 }, () => {
             const a = new Audio(sortedSfxUrl);
-            a.volume = 0.35; // a bit louder so it stands out
+            a.volume = 0.35;
             a.preload = "auto";
             return a;
         });
@@ -212,7 +216,6 @@ export default function App() {
     }, []);
 
     async function primeAudio() {
-        // unlock audio on a user gesture
         const a1 = swapPoolRef.current[0];
         const a2 = sortedPoolRef.current[0];
 
@@ -223,8 +226,7 @@ export default function App() {
                 a1.pause();
                 a1.currentTime = 0;
             }
-        } catch {//catch
-            }
+        } catch { /* empty */ }
 
         try {
             if (a2) {
@@ -233,11 +235,10 @@ export default function App() {
                 a2.pause();
                 a2.currentTime = 0;
             }
-        } catch {//catch
-             }
+        } catch { /* empty */ }
     }
 
-    function playFromPool(pool: HTMLAudioElement[], idxRef: React.MutableRefObject<number>) {
+    function playFromPool(pool: HTMLAudioElement[], idxRef: MutableRefObject<number>) {
         if (!soundOnRef.current) return;
         if (!pool.length) return;
 
@@ -311,7 +312,6 @@ export default function App() {
         }
 
         if (step.type === "markSorted") {
-            // play only when newly marked (prevents repeats)
             setSorted((prev) => {
                 if (prev.has(step.index)) return prev;
                 playSortedSound();
@@ -376,17 +376,13 @@ export default function App() {
     const info = ALGORITHMS[algo];
 
     return (
-        <div className="app">
+        <>
             <h1>Sorting Visualizer</h1>
 
             <div className="controls">
                 <label>
                     Sound:{" "}
-                    <input
-                        type="checkbox"
-                        checked={soundOn}
-                        onChange={(e) => setSoundOn(e.target.checked)}
-                    />
+                    <input type="checkbox" checked={soundOn} onChange={(e) => setSoundOn(e.target.checked)} />
                 </label>
 
                 <label>
@@ -426,13 +422,7 @@ export default function App() {
 
                 <label>
                     Speed (ms): {speedMs}
-                    <input
-                        type="range"
-                        min={0}
-                        max={200}
-                        value={speedMs}
-                        onChange={(e) => setSpeedMs(Number(e.target.value))}
-                    />
+                    <input type="range" min={0} max={200} value={speedMs} onChange={(e) => setSpeedMs(Number(e.target.value))} />
                 </label>
 
                 <div className="buttons">
@@ -459,7 +449,9 @@ export default function App() {
             </div>
 
             <div className="explain">
-                <h2>{info.label} Complexity</h2>
+                <h2 className="blankComplexity">
+                    {info.label} Complexity
+                </h2>
                 <p>{info.time}</p>
                 <p>{info.space}</p>
             </div>
@@ -471,6 +463,25 @@ export default function App() {
             <div className="source-information">
                 <p>Image Source: Big-O Cheatsheet by Eric Rowell (bigocheatsheet.com), via Wikimedia Commons.</p>
             </div>
+        </>
+    );
+}
+
+/* Router shell */
+export default function App() {
+    return (
+        <div className="app">
+            <nav className="nav">
+                <Link className="nav__link" to="/">Home</Link>
+                <Link className="nav__link" to="/about">About</Link>
+            </nav>
+
+
+            <Routes>
+                <Route path="/" element={<SortingVisualizer />} />
+                <Route path="/about" element={<About />} />
+                <Route path="*" element={<div>Page not found</div>} />
+            </Routes>
         </div>
     );
 }
