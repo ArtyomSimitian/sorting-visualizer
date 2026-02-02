@@ -710,7 +710,7 @@ function SortingVisualizer() {
             </div>
 
             <div className="explain">
-                <h2 className="blankComplexity">{info.label} Complexity</h2>
+                <h2 className="blankComplexity">{info.label} Complexity:</h2>
                 <p>{info.time}</p>
                 <p>{info.space}</p>
             </div>

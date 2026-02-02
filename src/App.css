@@ -101,6 +101,7 @@
 
 input[type="range"] {
   accent-color: darkorange; /*slider color*/
+  width: 100%;
 }
 
 input[type="checkbox"] {
