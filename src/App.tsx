@@ -382,6 +382,7 @@ function SortingVisualizer() {
             <div className="controls">
                 <label>
                     Sound:{" "}
+
                     <input type="checkbox" checked={soundOn} onChange={(e) => setSoundOn(e.target.checked)} />
                 </label>
 
@@ -463,6 +464,9 @@ function SortingVisualizer() {
             <div className="source-information">
                 <p>Image Source: Big-O Cheatsheet by Eric Rowell (bigocheatsheet.com), via Wikimedia Commons.</p>
             </div>
+            <div className="copyright">
+                <p>Copyright &#169; 2026 Artyom Simitian. All Rights Reserved</p>
+            </div>
         </>
     );
 }
@@ -473,6 +477,7 @@ export default function App() {
         <div className="app">
             <nav className="nav">
                 <Link className="nav__link" to="/">Home</Link>
+                <i className="nav__link">|</i>
                 <Link className="nav__link" to="/about">About</Link>
             </nav>
 

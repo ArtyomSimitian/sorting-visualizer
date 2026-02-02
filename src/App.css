@@ -2,12 +2,12 @@
   max-width: 1440px;
   margin: 0 auto;
   padding: 16px;
-  font-family: Courier New, Courier, monospace;
+  /*font-family: Courier New, Courier, monospace;*/
 }
 
 .nav {
   display: flex;
-  gap: 12px;
+  gap: 24px;
   margin-bottom: 12px;
 }
 
@@ -29,10 +29,20 @@
 .buttons {
   margin: auto;
   gap: 12px;
-  display: flex;
+  display: inline;
   border: 5px solid #ddd;
   text-align: center;
   align-content: center;
+}
+
+.copyright{
+  display: flex;
+  justify-content: center;
+  font-size: small;
+  margin: 8px auto 0;
+  text-align: center;
+  width: 100%;
+  color: #888888;
 }
 
 .bars {
@@ -56,8 +66,7 @@
 }
 
 .bar--sorted {
-  background: springgreen;
-
+  background: white;
 }
 
 .explain {
@@ -84,8 +93,38 @@
 .source-information {
   display: flex;
   justify-content: center;
-  font-size: x-small;
+  font-size: small;
   margin: 8px auto 0;
   text-align: center;
   width: 100%;
 }
+
+input[type="range"] {
+  accent-color: darkorange; /*slider color*/
+}
+
+input[type="checkbox"] {
+  accent-color: darkorange; /* checkmark color */
+}
+
+/* Make labels + controls use the same font */
+.controls,
+.controls label,
+.controls select,
+.controls input,
+.controls button {
+  font-family: inherit;
+}
+
+/* Style the select */
+.controls select {
+  padding: 4px 4px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: #242424;   /* match dark background */
+  color: darkorange;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: medium;
+}
+

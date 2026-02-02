@@ -3,7 +3,6 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 24px;
-    padding: 24px;
 }
 
 .drop__title{
@@ -25,13 +24,23 @@
     flex: 0 0 auto;
 }
 
+.copyright{
+    display: flex;
+    justify-content: center;
+    font-size: small;
+    margin: 8px auto 0;
+    text-align: center;
+    width: 100%;
+    color: #888888;
+}
+
 .aboutImage {
     width: 480px;   /* change size */
     height: auto;
     border-radius: 16px;
     border: 5px solid #ffffff;
     display: block;
-    margin: 16px;
+    margin: -4px; /*move image to the left*/
     background-color: white;
 }
 

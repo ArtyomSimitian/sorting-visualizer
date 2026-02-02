@@ -239,6 +239,9 @@ export default function About() {
                         <li>Task scheduling (priority queue, heap-based implementation)</li>
                     </ul>
                 </details>
+                <div className="copyright">
+                    <p>Copyright &#169; 2026 Artyom Simitian. All Rights Reserved</p>
+                </div>
             </section>
         </main>
     );
