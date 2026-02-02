@@ -127,3 +127,9 @@ input[type="checkbox"] {
   font-size: medium;
 }
 
+/* If a bar is both sorted AND active, active should win */
+.bar--sorted.bar--active {
+  background: darkorange;
+}
+
+
