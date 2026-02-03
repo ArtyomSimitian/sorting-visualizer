@@ -1,6 +1,6 @@
 // src/App.tsx
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { MutableRefObject } from "react";
+import type { RefObject } from "react";
 import "./App.css";
 
 import bigOCheatSheet from "./assets/Big-O_Cheatsheet.png";
@@ -231,23 +231,23 @@ function useAudioPools(soundOn: boolean) {
     const lastSortedSoundRef = useRef(0);
 
     const isMobileRef = useRef(false);
+
     useEffect(() => {
         const mql = window.matchMedia("(pointer: coarse)");
         const update = () => {
             isMobileRef.current = mql.matches || window.innerWidth <= 768;
         };
+
         update();
-
-        if ("addEventListener" in mql) mql.addEventListener("change", update);
-        else (mql as any).addListener(update);
-
+        mql.addEventListener("change", update);
         window.addEventListener("resize", update);
+
         return () => {
-            if ("removeEventListener" in mql) mql.removeEventListener("change", update);
-            else (mql as any).removeListener(update);
+            mql.removeEventListener("change", update);
             window.removeEventListener("resize", update);
         };
     }, []);
+
 
     useEffect(() => {
         swapPoolRef.current = Array.from({ length: 6 }, () => {
@@ -295,7 +295,7 @@ function useAudioPools(soundOn: boolean) {
         }
     }
 
-    function playFromPool(pool: HTMLAudioElement[], idxRef: MutableRefObject<number>) {
+    function playFromPool(pool: HTMLAudioElement[], idxRef: RefObject<number>) {
         if (!soundOnRef.current) return;
         if (!pool.length) return;
 
