@@ -1,137 +1,146 @@
-.app {
-  max-width: 1440px;
+.app{
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 22px 16px 28px;
 }
 
-.nav {
-  display: flex;
-  gap: 24px;
-  margin-bottom: 12px;
+.nav{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  margin-bottom: 14px;
 }
 
-.nav__link {
-  font-size: 24px;
-  color: darkorange;
-  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+.nav__link{
+  color: var(--muted);
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+}
+.nav__link:hover{
+  color: var(--text);
+  border-color: var(--border);
+  background: var(--surface);
+}
+
+/* your separator is an <i> with nav__link */
+.nav i.nav__link{
+  opacity: .35;
+  pointer-events: none;
+  border-color: transparent;
+  background: transparent;
+  padding: 0 2px;
 }
 
 .blankComplexity{
-  color: darkorange;
+  color: var(--accent);
 }
 
-.controls {
+.controls{
   display: grid;
   gap: 12px;
   margin-bottom: 16px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 18px;
 }
 
-.buttons {
-  margin: auto;
-  gap: 12px;
-  display: inline;
-  border: 5px solid #ddd;
-  text-align: center;
-  align-content: center;
+.controls label{
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
 }
 
-.copyright{
+.controls select{
+  font-weight: 700;
+}
+
+.buttons{
   display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
   justify-content: center;
-  font-size: small;
-  margin: 8px auto 0;
-  text-align: center;
-  width: 100%;
-  color: #888888;
+  padding-top: 6px;
 }
 
-.bars {
-  display: flex;
-  align-items: flex-end;
+/* Visualizer stage */
+.bars{
+  position: relative;
+  display:flex;
+  align-items:flex-end;
   gap: 2px;
-  height: 320px;
-  border: 5px solid #ddd;
-  padding: 8px;
+  height: 340px;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: rgba(0,0,0,.25);
+  overflow: hidden;
   user-select: none;
 }
 
-.bar {
+/* subtle spotlight inside the stage */
+.bars::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+          radial-gradient(600px circle at 30% 15%, rgba(255,255,255,.08), transparent 55%);
+}
+
+.bar{
   flex: 1;
-  background: #888;
-  border-radius: 2px 2px 0 0;
+  border-radius: 4px 4px 0 0;
+  background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.08));
 }
 
-.bar--active {
-  background: darkorange;
+.bar--active{
+  background: linear-gradient(180deg, rgba(255,138,0,.95), rgba(255,138,0,.40));
+  box-shadow: 0 0 0 1px rgba(255,138,0,.25), 0 14px 34px rgba(255,138,0,.18);
 }
 
-.bar--sorted {
-  background: springgreen;
+.bar--sorted{
+  background: linear-gradient(180deg, rgba(42,245,152,.92), rgba(42,245,152,.30));
 }
 
-.explain {
+.bar--sorted.bar--active{
+  background: linear-gradient(180deg, rgba(255,138,0,.95), rgba(255,138,0,.40));
+}
+
+.explain{
   margin-top: 16px;
-  border-top: 1px solid #eee;
-  padding-top: 12px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--surface);
 }
 
-.image-wrap {
-  max-width: 1000px;
-  margin: 16px auto 0;
-  padding: 8px;
-  background: #242424;
-  border-radius: 10px;
+/* Paper Inset Card for the Big-O image (keeps it readable + intentional) */
+.image-wrap{
+  max-width: 980px;
+  margin: 18px auto 0;
+  padding: 12px;
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1px solid rgba(0,0,0,.10);
+  box-shadow: 0 16px 40px rgba(0,0,0,.22);
 }
 
-.cheatsheet-img {
+.cheatsheet-img{
   width: 100%;
   height: auto;
   display: block;
-  border-radius: 8px;
+  border-radius: 14px;
 }
 
-.source-information {
-  display: flex;
-  justify-content: center;
+.source-information,
+.copyright{
+  display:flex;
+  justify-content:center;
   font-size: small;
-  margin: 8px auto 0;
+  margin: 10px auto 0;
   text-align: center;
   width: 100%;
+  color: var(--muted);
 }
-
-input[type="range"] {
-  accent-color: darkorange; /*slider color*/
-  width: 100%;
-}
-
-input[type="checkbox"] {
-  accent-color: darkorange; /* checkmark color */
-}
-
-/* Make labels + controls use the same font */
-.controls,
-.controls label,
-.controls select,
-.controls input,
-.controls button {
-  font-family: inherit;
-}
-
-/* Style the select */
-.controls select {
-  padding: 4px 4px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  background: #242424;   /* match dark background */
-  color: darkorange;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: medium;
-}
-
-/* If a bar is both sorted AND active, active should win */
-.bar--sorted.bar--active {
-  background: darkorange;
-}
-
-

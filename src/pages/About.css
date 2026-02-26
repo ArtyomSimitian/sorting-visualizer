@@ -6,13 +6,14 @@
 }
 
 .drop__title{
-    color: darkorange;
+    color: white;
     padding: 16px;
     font-size: x-large;
 }
 
 .drop{
     font-size: larger;
+    color: darkgrey;
 }
 
 .aboutText {
