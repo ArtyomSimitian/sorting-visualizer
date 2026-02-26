@@ -389,7 +389,7 @@ function SortingVisualizer() {
     const [algo, setAlgo] = useState<Algo>("bubble");
     const [n, setN] = useState(40);
     const [speedMs, setSpeedMs] = useState(20);
-    const [soundOn, setSoundOn] = useState(true);
+    const [soundOn, setSoundOn] = useState(false);
 
     // Force bar remount on reset/size change for clean refs/classes
     const [barsVersion, setBarsVersion] = useState(0);
