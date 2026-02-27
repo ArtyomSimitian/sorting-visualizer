@@ -52,8 +52,8 @@
   color: var(--muted);
 }
 
-.controls select{
-  font-weight: 700;
+.controls select option{
+  background: rgba(20, 20, 20, 0.90);
 }
 
 .buttons{

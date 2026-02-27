@@ -654,7 +654,7 @@ function SortingVisualizer() {
                     <select
                         value={algo}
                         onChange={(e) => {
-                            pause();
+                            pause(); //if changed while sorting
                             iterRef.current = null;
                             clearMarks();
                             setAlgo(e.target.value as Algo);
