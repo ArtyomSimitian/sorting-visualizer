@@ -1,73 +1,70 @@
-# React + TypeScript + Vite
+# SortingVisualizer.com
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An interactive sorting visualizer built to make algorithms easier to understand through motion, color, and user control.
 
-Currently, two official plugins are available:
+SortingVisualizer.com lets users explore how sorting algorithms behave in real time by adjusting array size, speed, and playback controls while watching the algorithm work step by step. The goal of this project is not just to show a final sorted result, but to help users understand *how* the algorithm gets there.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Live Site
 
-## React Compiler
+[SortingVisualizer.com](https://sortingvisualizer.com)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Overview
 
-## Expanding the ESLint configuration
+This project was built as a hands-on way to strengthen my understanding of algorithms, front-end development, and interactive system design. Instead of learning sorting only from textbook examples or static diagrams, I wanted to create a tool that makes the process visual, dynamic, and easier to follow.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+The visualizer focuses on clarity and user experience. Users can choose an algorithm, generate arrays, control playback speed, pause execution, step through the process, and observe how values move through comparisons and swaps.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Features
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- Interactive sorting visualization
+- Multiple algorithm selection support
+- Adjustable array size
+- Adjustable animation speed
+- Play and pause controls
+- Step-through execution
+- Sound toggle
+- Real-time visual feedback for active comparisons
+- Highlighting for sorted elements
+- Dark, minimal UI designed for focus and readability
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Tech Stack
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+- **React**
+- **TypeScript**
+- **CSS**
+- **JavaScript runtime and package manager**: npm, yarn, or pnpm
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Why I Built It
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+I built this project to deepen my understanding of computer science fundamentals while also improving my front-end engineering skills.
+
+This project helped me practice:
+
+- translating algorithm logic into visual behavior
+- managing UI state during live execution
+- building reusable components
+- improving debugging and performance
+- designing an experience that is both educational and interactive
+
+It also gave me a stronger appreciation for how important visualization can be when learning technical concepts.
+
+## How It Works
+
+At a high level, the app:
+
+1. Generates an array of values
+2. Renders each value as a visual bar
+3. Runs the selected sorting algorithm
+4. Animates comparisons, swaps, and sorted states
+5. Updates the UI in real time based on user controls
+
+The visualization is designed to make algorithm behavior easier to follow by clearly separating inactive elements from active comparisons and completed positions.
+
+## Local Development
+
+Clone the repository and install dependencies:
+
+```bash
+git clone https://github.com/your-username/sortingvisualizer.git
+cd sortingvisualizer
+npm install
