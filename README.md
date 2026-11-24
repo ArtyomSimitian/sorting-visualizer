@@ -62,9 +62,18 @@ The visualization is designed to make algorithm behavior easier to follow by cle
 
 ## Local Development
 
-Clone the repository and install dependencies:
+```bash
+git clone https://github.com/ArtyomSimitian/sorting-visualizer.git
+cd sorting-visualizer
+npm install
+npm run dev
+```
+
+Then open http://localhost:5173.
+
+To build for production:
 
 ```bash
-git clone https://github.com/your-username/sortingvisualizer.git
-cd sortingvisualizer
-npm install
+npm run build
+npm run preview
+```
